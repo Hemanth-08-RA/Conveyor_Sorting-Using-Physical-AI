@@ -78,29 +78,37 @@ flowchart LR
 ## 🔌 Circuit Diagram & Hardware Schematics (Single-Servo Sorter)
 
 ### 1. Mechanical Sorting Logic
-- **⚫ Black Box**: Allowed to pass straight through without actuation (Servo stays in neutral position at $0^\circ$).
+- **⚫ Black Box**: Allowed to pass straight through without actuation (Servo lever stays in neutral position at $0^\circ$).
 - **⚪ White Box**: Single servo lever actuates to $90^\circ$ to divert the White box into the side collection bin, then auto-resets to $0^\circ$.
 
 ---
 
-### 2. System Circuit Architecture
+### 2. Visual Circuit Diagram & Wiring Schematic
+
+<p align="center">
+  <img src="docs/images/circuit_diagram.png" alt="Single-Servo Conveyor Circuit Diagram" width="850"/>
+</p>
+
+---
+
+### 3. System Circuit Architecture
 
 ```mermaid
 graph TD
-    subgraph Host_System [💻 Computer / Laptop]
-        CAM[📷 Vision Camera / Webcam]
-        OPENCV[🐍 Python OpenCV Core + Web Dashboard]
-        USB_PORT[🔌 USB Serial COM Port @ 115200 Baud]
+    subgraph Host_System ["Host PC / Laptop"]
+        CAM["Vision Camera / Webcam 60 FPS"]
+        OPENCV["Python OpenCV Vision Core"]
+        USB_PORT["USB Serial COM Port 115200 Baud"]
         CAM --> OPENCV
         OPENCV --> USB_PORT
     end
 
-    subgraph Controller [🎛️ Arduino UNO Microcontroller]
-        ARDUINO[Arduino UNO Board]
-        P5[Pin 5 - Motor PWM Enable]
-        P6[Pin 6 - Motor Direction IN1]
-        P9[Pin 9 - Sorter Servo Signal]
-        GND_A[Arduino GND]
+    subgraph Controller ["Arduino UNO Microcontroller"]
+        ARDUINO["Arduino UNO Board"]
+        P5["Digital Pin 5 - Motor PWM Enable"]
+        P6["Digital Pin 6 - Motor Direction IN1"]
+        P9["Digital Pin 9 - Sorter Servo Signal"]
+        GND_A["Arduino GND Reference"]
         
         USB_PORT <== USB Cable ==> ARDUINO
         ARDUINO --> P5
@@ -108,37 +116,37 @@ graph TD
         ARDUINO --> P9
     end
 
-    subgraph Motor_Subsystem [⚡ Conveyor Drive Subsystem]
-        L298N[L298N Motor Driver Module]
-        DC_MOTOR[⚙️ DC Gear Motor Conveyor]
+    subgraph Motor_Subsystem ["Conveyor Drive Subsystem"]
+        L298N["L298N Motor Driver Module"]
+        DC_MOTOR["Conveyor DC Gear Motor"]
         
-        P5 -->|PWM ENA| L298N
-        P6 -->|Direction IN1| L298N
-        L298N -->|OUT1 / OUT2| DC_MOTOR
+        P5 --> L298N
+        P6 --> L298N
+        L298N --> DC_MOTOR
     end
 
-    subgraph Sorter_Actuator [🦾 Single Diverter Servo]
-        SERVO[🎯 SG90 / MG90S Micro Servo Sorter]
-        SERVO_LEVER[Lever Arm: 0° Pass Black | 90° Divert White]
+    subgraph Sorter_Actuator ["Single Diverter Sorter"]
+        SERVO["SG90 / MG90S Micro Servo"]
+        SERVO_LEVER["Diverter Arm: 0 deg Pass | 90 deg Divert"]
         
-        P9 -->|PWM Signal| SERVO
+        P9 --> SERVO
         SERVO --> SERVO_LEVER
     end
 
-    subgraph Power_Supply [🔋 External Power Distribution]
-        EXT_PWR[⚡ External DC Power Supply 5V - 12V]
-        PWR_POS[+VDC Power Rail]
-        PWR_GND[-GND Common Ground]
+    subgraph Power_Supply ["External Power Supply 5V - 12V"]
+        EXT_PWR["External DC Power Source"]
+        PWR_POS["+VCC Positive Rail"]
+        PWR_GND["-GND Common Ground"]
         
         EXT_PWR --> PWR_POS
         EXT_PWR --> PWR_GND
         
-        PWR_POS ==>|12V / 5V| L298N
-        PWR_POS ==>|5V VCC| SERVO
+        PWR_POS ==> L298N
+        PWR_POS ==> SERVO
         
-        PWR_GND ==>|Common GND| L298N
-        PWR_GND ==>|Common GND| SERVO
-        PWR_GND ===|Common Reference| GND_A
+        PWR_GND ==> L298N
+        PWR_GND ==> SERVO
+        PWR_GND === GND_A
     end
 
     style Host_System fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#fff
