@@ -1,0 +1,21 @@
+# Python cache & virtual environments
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+
+# Temporary test images & scratch captures in root
+*.png
+*.jpg
+*.jpeg
+!templates/*.png
+!templates/*.jpg
+!python/templates/*.png
+!python/templates/*.jpg
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

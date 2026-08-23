@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Conveyor Sorting Station</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="industrial-theme">
+    <div class="ambient-glow glow-cyan"></div>
+    <div class="ambient-glow glow-amber"></div>
+
+    <div class="main-container">
+
+        <!-- Top Header & Industrial Telemetry Bar -->
+        <header class="glass-panel app-header">
+            <div class="header-left">
+                <div class="header-icon-box">
+                    <span class="hud-glyph">⬡</span>
+                </div>
+                <div class="header-titles">
+                    <div class="header-badge-tag">AUTONOMOUS SORTING STATION // v2.5</div>
+                    <h1>CONVEYOR SORTING SYSTEM</h1>
+                </div>
+            </div>
+            <div class="header-telemetry">
+                <div class="telem-item">
+                    <span class="telem-label">VISION CORE</span>
+                    <span class="telem-val telem-green">OPENCV 4.10</span>
+                </div>
+                <div class="telem-item">
+                    <span class="telem-label">LATENCY</span>
+                    <span class="telem-val telem-cyan" id="telemFps">0.4 ms</span>
+                </div>
+                <div class="status-badge badge-online">
+                    <span class="pulse-dot"></span>
+                    <span id="headerStatus">LIVE CONTINUOUS</span>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Large Camera View & Compact Controls -->
+        <div class="glass-panel video-section">
+            <div class="video-container">
+                <!-- Tactical HUD Corner Brackets -->
+                <div class="corner-bracket top-left"></div>
+                <div class="corner-bracket top-right"></div>
+                <div class="corner-bracket bottom-left"></div>
+                <div class="corner-bracket bottom-right"></div>
+
+                <div class="video-wrapper" id="videoWrapper">
+                    <img id="videoFeed" src="/video_feed" alt="Conveyor Vision Stream" onerror="handleStreamError(this)">
+                    <!-- Direct Hardware Accelerated Continuous 60 FPS Video Stream -->
+                    <video id="browserVideo" autoplay playsinline muted></video>
+                    <canvas id="overlayCanvas"></canvas>
+                </div>
+            </div>
+            
+            <!-- Compact Industrial Controls Bar -->
+            <div class="compact-controls-bar">
+                <div class="btn-group-main">
+                    <button id="btnStartCamera" class="glass-btn btn-blue" onclick="setCamera(true)">
+                        ▶ Start Camera
+                    </button>
+                    <button id="btnStopCamera" class="glass-btn btn-red" onclick="setCamera(false)">
+                        ■ Stop Camera
+                    </button>
+                    <button id="btnToggleDetection" class="glass-btn btn-green" onclick="toggleDetection()">
+                        👁 Start Detection
+                    </button>
+                    <button id="btnLaptopCam" class="glass-btn btn-indigo" onclick="startLaptopBrowserCamera()">
+                        💻 Use Laptop Webcam
+                    </button>
+                </div>
+
+                <div class="btn-group-orientation">
+                    <span class="bar-divider"></span>
+                    <button class="glass-btn btn-tool" onclick="rotateCamera()" title="Rotate 90 degrees">
+                        🔄 Rotate 90°
+                    </button>
+                    <button class="glass-btn btn-tool" onclick="flipCameraH()" title="Mirror horizontal">
+                        ↔ Flip Horizontal
+                    </button>
+                    <button class="glass-btn btn-tool" onclick="flipCameraV()" title="Flip vertical">
+                        ↕ Flip Vertical
+                    </button>
+                    <button class="glass-btn btn-tool btn-tool-reset" onclick="resetCameraOrientation()" title="Reset orientation">
+                        ↺ Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4-Column Industrial Dashboard Row -->
+        <div class="dashboard-row-4">
+            
+            <!-- 1. Current Target Card -->
+            <div class="glass-panel card-panel">
+                <div class="card-title">
+                    <span class="card-icon">🎯</span> Target Classification
+                </div>
+                <div class="detection-hero" id="detectionHeroBox">
+                    <span id="detectionHeroText">NO OBJECT</span>
+                </div>
+                <div class="panel-meta">
+                    <div class="meta-row">
+                        <span>Target Locked:</span>
+                        <strong id="metaDetectedObject">None</strong>
+                    </div>
+                    <div class="meta-row">
+                        <span>Vision Pipeline:</span>
+                        <span id="metaDetectionStatus" class="status-pill">Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Sorting Count Card (White & Black Cubes) -->
+            <div class="glass-panel card-panel">
+                <div class="card-title">
+                    <span class="card-icon">📊</span> Sorted Item Count
+                </div>
+                <div class="count-boxes-row">
+                    <div class="count-box white-count-box">
+                        <div class="count-box-label">WHITE CUBE</div>
+                        <div class="count-box-number" id="countWhite">0</div>
+                    </div>
+                    <div class="count-box black-count-box">
+                        <div class="count-box-label">BLACK CUBE</div>
+                        <div class="count-box-number" id="countGrey">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Conveyor Motor Control Card -->
+            <div class="glass-panel card-panel">
+                <div class="card-title">
+                    <span class="card-icon">⚙</span> Conveyor Actuation
+                </div>
+                <div class="conveyor-btn-col">
+                    <button id="btnStartConveyor" class="glass-btn btn-blue btn-full" onclick="setConveyor(true)">
+                        ▶ START CONVEYOR
+                    </button>
+                    <button id="btnStopConveyor" class="glass-btn btn-red btn-full" onclick="setConveyor(false)">
+                        ■ STOP CONVEYOR
+                    </button>
+                </div>
+                <div class="conveyor-status-box">
+                    <span>Motor Status:</span>
+                    <strong id="conveyorStatusText" class="badge-stopped">STOPPED</strong>
+                </div>
+            </div>
+
+            <!-- 4. Area / Sensitivity Settings Card -->
+            <div class="glass-panel card-panel">
+                <div class="card-title">
+                    <span class="card-icon">🔧</span> Object Filters
+                </div>
+                <div class="settings-controls">
+                    <div class="setting-item">
+                        <div class="setting-header">
+                            <span>Min Cube Size:</span>
+                            <span class="setting-val-display" id="valMinSize">60</span>
+                        </div>
+                        <input type="range" id="sliderMinSize" min="20" max="1500" value="60" step="10" oninput="onSettingsChange()">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Manual Testing Card -->
+        <div class="glass-panel manual-testing-card">
+            <div class="section-title">
+                ✋ MANUAL OVERRIDE & ACTUATOR TRIGGER
+            </div>
+            <div class="manual-btn-row">
+                <button id="btnManualWhite" class="glass-btn btn-manual-white" onclick="manualSort('white')">
+                    SORT WHITE
+                </button>
+                <button id="btnManualGrey" class="glass-btn btn-manual-black" onclick="manualSort('grey')">
+                    SORT BLACK
+                </button>
+                <button id="btnResetCounters" class="glass-btn btn-manual-white" onclick="resetCounters()">
+                    RESET COUNTERS
+                </button>
+            </div>
+        </div>
+
+        <!-- Industrial Telemetry Log Console -->
+        <div class="glass-panel system-log-card">
+            <div class="section-title-left">
+                📜 TELEMETRY EVENT LOG
+            </div>
+            <div class="terminal-box" id="logTerminal">
+                <div class="log-line">[SYSTEM] Autonomous Sorting Station initialized</div>
+                <div class="log-line">[SYSTEM] OpenCV shape + color recognition core active</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Dashboard Controller -->
+    <script src="app.js"></script>
+</body>
+</html>

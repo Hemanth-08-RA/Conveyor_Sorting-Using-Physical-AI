@@ -1,0 +1,4 @@
+name: Conveyor_sorting
+description: OpenCV-based conveyor sorting system for white and grey cubes on a blue conveyor belt
+bricks:
+  - arduino:web_ui: {}
