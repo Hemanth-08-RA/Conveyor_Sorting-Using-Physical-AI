@@ -247,10 +247,14 @@ Conveyor_Sorting-Using-Physical-AI/
 
 ---
 
-## 👨‍💻 Author
+## 👥 Authors & Contributors
 
-**Hemanth-08-RA**
-- GitHub: [@Hemanth-08-RA](https://github.com/Hemanth-08-RA)
+| Contributor | GitHub Profile | Role |
+| :--- | :--- | :--- |
+| **Hemanth** | [@Hemanth-08-RA](https://github.com/Hemanth-08-RA) | Project Lead, Vision & Firmware |
+| **Hasmitha Tadavarthy** | [@hasmithatadavarthy](https://github.com/hasmithatadavarthy) | Contributor |
+| **Shaik Subhani** | [@iamsubhani11](https://github.com/iamsubhani11) | Contributor |
+| **Mastan Shaik** | [@Mastanshaik15](https://github.com/Mastanshaik15) | Contributor |
 
 ---
 
