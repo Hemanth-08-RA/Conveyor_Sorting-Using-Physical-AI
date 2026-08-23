@@ -83,15 +83,7 @@ flowchart LR
 
 ---
 
-### 2. Visual Circuit Diagram & Wiring Schematic
-
-<p align="center">
-  <img src="docs/images/circuit_diagram.png" alt="Single-Servo Conveyor Circuit Diagram" width="850"/>
-</p>
-
----
-
-### 3. System Circuit Architecture
+### 2. System Circuit Architecture
 
 ```mermaid
 graph TD
