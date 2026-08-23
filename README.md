@@ -75,9 +75,15 @@ flowchart LR
 
 ---
 
-## 🔌 Circuit Diagram & Hardware Schematics
+## 🔌 Circuit Diagram & Hardware Schematics (Single-Servo Sorter)
 
-### 1. System Circuit Architecture
+### 1. Mechanical Sorting Logic
+- **⚫ Black Box**: Allowed to pass straight through without actuation (Servo stays in neutral position at $0^\circ$).
+- **⚪ White Box**: Single servo lever actuates to $90^\circ$ to divert the White box into the side collection bin, then auto-resets to $0^\circ$.
+
+---
+
+### 2. System Circuit Architecture
 
 ```mermaid
 graph TD
@@ -93,15 +99,13 @@ graph TD
         ARDUINO[Arduino UNO Board]
         P5[Pin 5 - Motor PWM Enable]
         P6[Pin 6 - Motor Direction IN1]
-        P9[Pin 9 - White Sorter Servo Signal]
-        P10[Pin 10 - Black Sorter Servo Signal]
+        P9[Pin 9 - Sorter Servo Signal]
         GND_A[Arduino GND]
         
         USB_PORT <== USB Cable ==> ARDUINO
         ARDUINO --> P5
         ARDUINO --> P6
         ARDUINO --> P9
-        ARDUINO --> P10
     end
 
     subgraph Motor_Subsystem [⚡ Conveyor Drive Subsystem]
@@ -113,12 +117,12 @@ graph TD
         L298N -->|OUT1 / OUT2| DC_MOTOR
     end
 
-    subgraph Sorter_Actuators [🦾 Diverter Servo Actuators]
-        SERVO_W[⚪ White Sorter Servo SG90/MG90S]
-        SERVO_B[⚫ Black Sorter Servo SG90/MG90S]
+    subgraph Sorter_Actuator [🦾 Single Diverter Servo]
+        SERVO[🎯 SG90 / MG90S Micro Servo Sorter]
+        SERVO_LEVER[Lever Arm: 0° Pass Black | 90° Divert White]
         
-        P9 -->|PWM Signal| SERVO_W
-        P10 -->|PWM Signal| SERVO_B
+        P9 -->|PWM Signal| SERVO
+        SERVO --> SERVO_LEVER
     end
 
     subgraph Power_Supply [🔋 External Power Distribution]
@@ -130,45 +134,40 @@ graph TD
         EXT_PWR --> PWR_GND
         
         PWR_POS ==>|12V / 5V| L298N
-        PWR_POS ==>|5V VCC| SERVO_W
-        PWR_POS ==>|5V VCC| SERVO_B
+        PWR_POS ==>|5V VCC| SERVO
         
         PWR_GND ==>|Common GND| L298N
-        PWR_GND ==>|Common GND| SERVO_W
-        PWR_GND ==>|Common GND| SERVO_B
+        PWR_GND ==>|Common GND| SERVO
         PWR_GND ===|Common Reference| GND_A
     end
 
     style Host_System fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#fff
     style Controller fill:#0b192c,stroke:#00ff88,stroke-width:2px,color:#fff
     style Motor_Subsystem fill:#1e1b4b,stroke:#a855f7,stroke-width:2px,color:#fff
-    style Sorter_Actuators fill:#1c1917,stroke:#f59e0b,stroke-width:2px,color:#fff
+    style Sorter_Actuator fill:#1c1917,stroke:#f59e0b,stroke-width:2px,color:#fff
     style Power_Supply fill:#310a0a,stroke:#ef4444,stroke-width:2px,color:#fff
 ```
 
 ---
 
-### 2. Complete Pin-by-Pin Wiring Table
+### 3. Complete Pin-by-Pin Wiring Table
 
-| Component Module | Component Pin | Arduino UNO Pin | External Power Rail | Description |
+| Component Module | Component Pin | Arduino UNO Pin | External Power Rail | Function / Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **L298N Motor Driver** | `ENA` (Enable A) | **Pin 5** | — | PWM Motor speed/enable signal |
-| **L298N Motor Driver** | `IN1` (Direction 1) | **Pin 6** | — | Motor forward rotation signal |
-| **L298N Motor Driver** | `IN2` (Direction 2) | — | **GND** | Motor reverse ground reference |
-| **L298N Motor Driver** | `12V / VCC` | — | **+12V / +5V (Ext)** | High-current motor supply |
-| **L298N Motor Driver** | `GND` | **GND** | **GND (Ext)** | **Common Ground** connection |
-| **L298N Motor Driver** | `OUT1 & OUT2` | — | — | Connected to DC Gear Motor terminals |
-| **White Sorter Servo** | `Orange (Signal)` | **Pin 9** | — | White Cube diverter gate PWM signal |
-| **White Sorter Servo** | `Red (VCC)` | — | **+5V (Ext)** | High-current 5V servo power |
-| **White Sorter Servo** | `Brown (GND)` | **GND** | **GND (Ext)** | **Common Ground** connection |
-| **Black Sorter Servo** | `Orange (Signal)` | **Pin 10** | — | Black Cube diverter gate PWM signal |
-| **Black Sorter Servo** | `Red (VCC)` | — | **+5V (Ext)** | High-current 5V servo power |
-| **Black Sorter Servo** | `Brown (GND)` | **GND** | **GND (Ext)** | **Common Ground** connection |
-| **PC Host Link** | `USB-B Port` | USB Cable | PC USB Port | Serial communication @ 115200 baud |
+| **L298N Driver** | `ENA` (Enable A) | **Digital Pin 5** | — | PWM Speed & motor enable |
+| **L298N Driver** | `IN1` (Direction 1) | **Digital Pin 6** | — | Conveyor forward rotation |
+| **L298N Driver** | `IN2` (Direction 2) | — | **GND** | Motor reverse ground reference |
+| **L298N Driver** | `12V / VCC` | — | **+12V / +5V (Ext)** | High-current motor supply |
+| **L298N Driver** | `GND` | **GND** | **GND (Ext)** | **Common Ground** connection |
+| **L298N Driver** | `OUT1 & OUT2` | — | — | DC Gear Motor terminals |
+| **Single Sorter Servo** | `Orange (Signal)` | **Digital Pin 9** | — | Diverter lever PWM control signal |
+| **Single Sorter Servo** | `Red (VCC)` | — | **+5V (Ext)** | High-current 5V servo power |
+| **Single Sorter Servo** | `Brown (GND)` | **GND** | **GND (Ext)** | **Common Ground** connection |
+| **Host PC Connection** | `USB-B Port` | USB Cable | PC USB Port | Serial communication @ 115200 baud |
 
 ---
 
-### 3. Electrical Schematic Layout
+### 4. Electrical Schematic Layout
 
 ```
                  +-----------------------------------------------+
@@ -178,27 +177,27 @@ graph TD
                  |                                               |
                  |  Digital Pin 5 (PWM)  -----> L298N ENA        |
                  |  Digital Pin 6        -----> L298N IN1        |
-                 |  Digital Pin 9 (PWM)  -----> Servo 1 (White)  |
-                 |  Digital Pin 10 (PWM) -----> Servo 2 (Black)  |
+                 |  Digital Pin 9 (PWM)  -----> Single Sorter    |
+                 |                              Servo (Signal)   |
                  |  GND                  -----> COMMON GROUND    |
                  +-----------------------------------------------+
                                             |
                                             | (Common GND)
       +-------------------------------------+-----------------------------------+
-      |                                     |                                   |
-+-----+------+                        +-----+------+                      +-----+------+
-|   L298N    |                        |  SERVO 1   |                      |  SERVO 2   |
-|   DRIVER   |                        | (WHITE GATE|                      | (BLACK GATE|
-+------------+                        +------------+                      +------------+
-| ENA  <-- P5|                        | SIG <-- P9 |                      | SIG <-- P10|
-| IN1  <-- P6|                        | VCC <- +5V |                      | VCC <- +5V |
-| IN2  <--GND|                        | GND <- GND |                      | GND <- GND |
-| OUT1 --> M+|                        +------------+                      +------------+
-| OUT2 --> M-|                              |                                   |
-| 12V  <--+12V (Ext)                        |                                   |
-| GND  <--GND  (Ext)                        |                                   |
-+------------+                              |                                   |
-      |                                     |                                   |
+      |                                                                         |
++-----+------+                                                            +-----+------+
+|   L298N    |                                                            |   SINGLE   |
+|   DRIVER   |                                                            |   SERVO    |
++------------+                                                            +------------+
+| ENA  <-- P5|                                                            | SIG <-- P9 |
+| IN1  <-- P6|                                                            | VCC <- +5V |
+| IN2  <--GND|                                                            | GND <- GND |
+| OUT1 --> M+|                                                            +------------+
+| OUT2 --> M-|                                                                  |
+| 12V  <--+12V (Ext)                                                            |
+| GND  <--GND  (Ext)                                                            |
++------------+                                                                  |
+      |                                                                         |
       +-------------------------------------+-----------------------------------+
                                             |
                                +------------------------+
@@ -209,10 +208,10 @@ graph TD
 ```
 
 > [!IMPORTANT]
-> **Common Ground Rule**: Always connect the **GND** of the Arduino UNO directly to the **GND** of your external power supply and motor driver. Without a shared ground reference, signals will float, causing erratic motor/servo behavior.
+> **Common Ground Rule**: Always tie the **GND** of the Arduino UNO directly to the **GND** of the external power supply and L298N motor driver. Without a shared ground reference, control signals will float.
 
 > [!TIP]
-> **Power Isolation**: Never power the DC motor or both servos directly from the Arduino 5V pin. DC motors and servos draw instantaneous current spikes that will cause microcontroller brownouts and USB resets. Always use an external 5V/12V power supply for actuators.
+> **Power Isolation**: Never power the DC motor or servo directly from the Arduino 5V header. Motors and servos draw instantaneous current surges that cause microcontroller resets. Always power them from an external 5V/12V DC source.
 
 ---
 
