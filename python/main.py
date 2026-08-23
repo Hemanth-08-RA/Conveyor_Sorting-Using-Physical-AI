@@ -226,13 +226,13 @@ class ArduinoSerialManager:
             
             if arduino_port:
                 self.serial_conn = serial.Serial(arduino_port, self.baud_rate, timeout=1.0)
-                time.sleep(1.8) # Allow Arduino bootloader reset
+                time.sleep(1.8) # Allow Arduino UNO Q bootloader reset
                 self.connected = True
-                state.add_log(f"Connected to Arduino on port {arduino_port}")
+                state.add_log(f"Connected to Arduino UNO Q on port {arduino_port}")
                 return True
             else:
                 self.connected = False
-                state.add_log("No physical Arduino detected. Operating in software standalone mode.")
+                state.add_log("No physical Arduino UNO Q detected. Operating in software standalone mode.")
                 return False
         except Exception as e:
             self.connected = False

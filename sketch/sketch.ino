@@ -3,7 +3,7 @@
  * Conveyor Sorting System - Arduino Firmware (Single-Servo Diverter)
  * ============================================================================
  * 
- * Hardware Target: Arduino Uno / Uno R4 / Compatible Microcontroller
+ * Hardware Target: Arduino UNO Q Microcontroller
  * 
  * Operational Behavior:
  *  - Black Box: Allowed to pass straight through without actuation (Servo at 0°).
@@ -74,7 +74,7 @@ void setup() {
 
   // Send startup banner
   Serial.println(F("========================================"));
-  Serial.println(F("SYSTEM_READY: Single-Servo Conveyor Sorter"));
+  Serial.println(F("SYSTEM_READY: Arduino UNO Q Sorter Rig"));
   Serial.println(F("BEHAVIOR: Black=Pass Straight | White=Divert"));
   Serial.println(F("========================================"));
 }

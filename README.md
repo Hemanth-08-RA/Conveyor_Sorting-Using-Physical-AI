@@ -2,18 +2,18 @@
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.10+-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)](https://opencv.org)
-[![Arduino UNO](https://img.shields.io/badge/Arduino-UNO-00979D?style=for-the-badge&logo=arduino&logoColor=white)](https://arduino.cc)
+[![Arduino UNO Q](https://img.shields.io/badge/Arduino-UNO_Q-00979D?style=for-the-badge&logo=arduino&logoColor=white)](https://arduino.cc)
 [![Flask](https://img.shields.io/badge/Flask-Web_Dashboard-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
 [![Hardware FPS](https://img.shields.io/badge/Stream-60_FPS_Continuous-00ff88?style=for-the-badge)](https://github.com/Hemanth-08-RA/Conveyor_Sorting-Using-Physical-AI)
 
-An industrial-grade, real-time autonomous conveyor sorting station powered by **OpenCV Computer Vision** and **Arduino microcontroller actuation**. The system dynamically detects, classifies, tracks, and mechanically sorts **White** and **Black** cubes on a continuous conveyor belt with sub-millisecond vision latency and 60 FPS continuous hardware-accelerated video feedback.
+An industrial-grade, real-time autonomous conveyor sorting station powered by **OpenCV Computer Vision** and **Arduino UNO Q microcontroller actuation**. The system dynamically detects, classifies, tracks, and mechanically sorts **White** and **Black** cubes on a continuous conveyor belt with sub-millisecond vision latency and 60 FPS continuous hardware-accelerated video feedback.
 
 ---
 
 ## 📸 Live Visual Feedback & Physical Setup
 
 ### 1. Physical Hardware Setup & Conveyor Rig
-The physical sorting setup consists of an automated conveyor belt, an Arduino UNO microcontroller, an L298N motor driver, dual servo diverter arms, collection bins, and an overhead vision camera.
+The physical sorting setup consists of an automated conveyor belt, an **Arduino UNO Q** microcontroller, an L298N motor driver, a single-servo diverter lever arm, collection bins, and an overhead vision camera.
 
 <p align="center">
   <img src="docs/images/conveyor_hardware_setup.jpg" alt="Conveyor Hardware Setup" width="850"/>
@@ -54,7 +54,7 @@ Dual-space chromatic analysis (`LAB` + `HSV`) accurately segmenting a matte whit
   - Single-click orientation controls (Rotate 90°, Flip Horizontal/Vertical).
 - **📹 60 FPS Hardware-Accelerated Camera Stream**:
   - Seamless continuous video feedback using HTML5 direct webcam capture and asynchronous overlay canvas rendering.
-- **🤖 Microcontroller Integration (Arduino UNO)**:
+- **🤖 Microcontroller Integration (Arduino UNO Q)**:
   - Serial protocol communication triggering sorting servos and conveyor motor states automatically.
 
 ---
@@ -70,7 +70,7 @@ flowchart LR
     D -- Yes --> F[🔬 Core Body Color Sampler]
     F --> G[🎯 Classify: WHITE CUBE / BLACK CUBE]
     G --> H[⚡ Centroid Tracker & Single-Count Cooldown]
-    H --> I[🦾 Arduino Serial Actuator Trigger]
+    H --> I[🦾 Arduino UNO Q Serial Actuator Trigger]
 ```
 
 ---
@@ -87,7 +87,7 @@ flowchart LR
 ### 🔬 Operational Architecture & Limitations
 
 - **How the Vision Model Works**:
-  The physical AI vision engine ingests continuous high-speed camera frames at 60 FPS. The incoming frame is converted into dual color spaces: **CIELAB** (for illumination-invariant lightness extraction) and **HSV** (for chromatic saturation isolation). Object contours are evaluated through the **Ramer–Douglas–Peucker polygon approximation algorithm (`cv2.approxPolyDP`)** to strictly filter and enforce 4-vertex square quadrilateral geometry ($0.68 \le \text{Aspect Ratio} \le 1.45$). Verified physical cubes undergo an **interior core body sample** to confirm target luminance while rejecting human skin tones ($H \in [0, 25], S > 55$), reaching hands, cast shadows, and wood grain reflections. A centroid tracking engine logs item counts and dispatches serial actuation commands (`sort_white` / `sort_black`) to the Arduino UNO.
+  The physical AI vision engine ingests continuous high-speed camera frames at 60 FPS. The incoming frame is converted into dual color spaces: **CIELAB** (for illumination-invariant lightness extraction) and **HSV** (for chromatic saturation isolation). Object contours are evaluated through the **Ramer–Douglas–Peucker polygon approximation algorithm (`cv2.approxPolyDP`)** to strictly filter and enforce 4-vertex square quadrilateral geometry ($0.68 \le \text{Aspect Ratio} \le 1.45$). Verified physical cubes undergo an **interior core body sample** to confirm target luminance while rejecting human skin tones ($H \in [0, 25], S > 55$), reaching hands, cast shadows, and wood grain reflections. A centroid tracking engine logs item counts and dispatches serial actuation commands (`sort_white` / `sort_black`) to the **Arduino UNO Q**.
 
 - **System Limitations**:
   1. **Low-Light Environments ($< 10\text{ lux}$)**: Severe lack of illumination reduces the contrast difference between black cubes and dark conveyor shadows below the detection threshold.
@@ -115,12 +115,12 @@ graph TD
         OPENCV --> USB_PORT
     end
 
-    subgraph Controller ["Arduino UNO Microcontroller"]
-        ARDUINO["Arduino UNO Board"]
+    subgraph Controller ["Arduino UNO Q Microcontroller"]
+        ARDUINO["Arduino UNO Q Board"]
         P5["Digital Pin 5 - Motor PWM Enable"]
         P6["Digital Pin 6 - Motor Direction IN1"]
         P9["Digital Pin 9 - Sorter Servo Signal"]
-        GND_A["Arduino GND Reference"]
+        GND_A["Arduino UNO Q GND Reference"]
         
         USB_PORT <== USB Cable ==> ARDUINO
         ARDUINO --> P5
@@ -172,7 +172,7 @@ graph TD
 
 ### 3. Complete Pin-by-Pin Wiring Table
 
-| Component Module | Component Pin | Arduino UNO Pin | External Power Rail | Function / Description |
+| Component Module | Component Pin | Arduino UNO Q Pin | External Power Rail | Function / Description |
 | :--- | :--- | :--- | :--- | :--- |
 | **L298N Driver** | `ENA` (Enable A) | **Digital Pin 5** | — | PWM Speed & motor enable |
 | **L298N Driver** | `IN1` (Direction 1) | **Digital Pin 6** | — | Conveyor forward rotation |
@@ -186,10 +186,10 @@ graph TD
 | **Host PC Connection** | `USB-B Port` | USB Cable | PC USB Port | Serial communication @ 115200 baud |
 
 > [!IMPORTANT]
-> **Common Ground Rule**: Always tie the **GND** of the Arduino UNO directly to the **GND** of the external power supply and L298N motor driver. Without a shared ground reference, control signals will float.
+> **Common Ground Rule**: Always tie the **GND** of the Arduino UNO Q directly to the **GND** of the external power supply and L298N motor driver. Without a shared ground reference, control signals will float.
 
 > [!TIP]
-> **Power Isolation**: Never power the DC motor or servo directly from the Arduino 5V header. Motors and servos draw instantaneous current surges that cause microcontroller resets. Always power them from an external 5V/12V DC source.
+> **Power Isolation**: Never power the DC motor or servo directly from the Arduino UNO Q 5V header. Motors and servos draw instantaneous current surges that cause microcontroller resets. Always power them from an external 5V/12V DC source.
 
 ---
 
@@ -206,9 +206,9 @@ cd Conveyor_Sorting-Using-Physical-AI
 pip install -r python/requirements.txt
 ```
 
-### 3. Flash Arduino Firmware
+### 3. Flash Arduino UNO Q Firmware
 1. Open `sketch/sketch.ino` in the Arduino IDE.
-2. Select your board (`Arduino UNO`) and COM port.
+2. Select your board (**Arduino UNO Q** / Uno compatible) and COM port.
 3. Upload the sketch.
 
 ### 4. Launch the Dashboard
@@ -232,13 +232,14 @@ Conveyor_Sorting-Using-Physical-AI/
 │   └── images/              # Demonstration images & setup photos
 │       ├── black_cube_detection.jpg
 │       ├── white_cube_detection.jpg
-│       └── conveyor_hardware_setup.jpg
+│       ├── conveyor_hardware_setup.jpg
+│       └── proper_circuit_diagram.png
 ├── python/
 │   ├── main.py              # Sub-millisecond OpenCV vision core & Flask web server
 │   ├── requirements.txt     # Python package requirements
 │   └── templates/           # Reference cube templates
 ├── sketch/
-│   ├── sketch.ino           # Arduino UNO actuator firmware
+│   ├── sketch.ino           # Arduino UNO Q actuator firmware
 │   └── sketch.yaml          # Arduino CLI config
 ├── run_and_open_dashboard.bat # One-click launcher for Windows
 └── README.md                # Project documentation
