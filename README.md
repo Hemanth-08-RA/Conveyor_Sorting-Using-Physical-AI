@@ -165,48 +165,6 @@ graph TD
 | **Single Sorter Servo** | `Brown (GND)` | **GND** | **GND (Ext)** | **Common Ground** connection |
 | **Host PC Connection** | `USB-B Port` | USB Cable | PC USB Port | Serial communication @ 115200 baud |
 
----
-
-### 4. Electrical Schematic Layout
-
-```
-                 +-----------------------------------------------+
-                 |              ARDUINO UNO R3/Q                 |
-                 |                                               |
-                 |  [USB TO PC (115200 Baud)]                    |
-                 |                                               |
-                 |  Digital Pin 5 (PWM)  -----> L298N ENA        |
-                 |  Digital Pin 6        -----> L298N IN1        |
-                 |  Digital Pin 9 (PWM)  -----> Single Sorter    |
-                 |                              Servo (Signal)   |
-                 |  GND                  -----> COMMON GROUND    |
-                 +-----------------------------------------------+
-                                            |
-                                            | (Common GND)
-      +-------------------------------------+-----------------------------------+
-      |                                                                         |
-+-----+------+                                                            +-----+------+
-|   L298N    |                                                            |   SINGLE   |
-|   DRIVER   |                                                            |   SERVO    |
-+------------+                                                            +------------+
-| ENA  <-- P5|                                                            | SIG <-- P9 |
-| IN1  <-- P6|                                                            | VCC <- +5V |
-| IN2  <--GND|                                                            | GND <- GND |
-| OUT1 --> M+|                                                            +------------+
-| OUT2 --> M-|                                                                  |
-| 12V  <--+12V (Ext)                                                            |
-| GND  <--GND  (Ext)                                                            |
-+------------+                                                                  |
-      |                                                                         |
-      +-------------------------------------+-----------------------------------+
-                                            |
-                               +------------------------+
-                               |  EXTERNAL POWER SUPPLY |
-                               |   +5V / +12V DC VCC    |
-                               |       GND (Ground)     |
-                               +------------------------+
-```
-
 > [!IMPORTANT]
 > **Common Ground Rule**: Always tie the **GND** of the Arduino UNO directly to the **GND** of the external power supply and L298N motor driver. Without a shared ground reference, control signals will float.
 
