@@ -75,14 +75,144 @@ flowchart LR
 
 ---
 
-## 🔌 Hardware Pinout & Wiring
+## 🔌 Circuit Diagram & Hardware Schematics
 
-| Component | Arduino Pin | Description |
-| :--- | :--- | :--- |
-| **Conveyor Motor / Relay** | `Pin 8` | Drives conveyor belt DC motor |
-| **White Cube Servo** | `Pin 9` | Diverter arm for White Cube collection bin |
-| **Black Cube Servo** | `Pin 10` | Diverter arm for Black Cube collection bin |
-| **Serial Baud Rate** | `115200 bps` | High-speed USB communication |
+### 1. System Circuit Architecture
+
+```mermaid
+graph TD
+    subgraph Host_System [💻 Computer / Laptop]
+        CAM[📷 Vision Camera / Webcam]
+        OPENCV[🐍 Python OpenCV Core + Web Dashboard]
+        USB_PORT[🔌 USB Serial COM Port @ 115200 Baud]
+        CAM --> OPENCV
+        OPENCV --> USB_PORT
+    end
+
+    subgraph Controller [🎛️ Arduino UNO Microcontroller]
+        ARDUINO[Arduino UNO Board]
+        P5[Pin 5 - Motor PWM Enable]
+        P6[Pin 6 - Motor Direction IN1]
+        P9[Pin 9 - White Sorter Servo Signal]
+        P10[Pin 10 - Black Sorter Servo Signal]
+        GND_A[Arduino GND]
+        
+        USB_PORT <== USB Cable ==> ARDUINO
+        ARDUINO --> P5
+        ARDUINO --> P6
+        ARDUINO --> P9
+        ARDUINO --> P10
+    end
+
+    subgraph Motor_Subsystem [⚡ Conveyor Drive Subsystem]
+        L298N[L298N Motor Driver Module]
+        DC_MOTOR[⚙️ DC Gear Motor Conveyor]
+        
+        P5 -->|PWM ENA| L298N
+        P6 -->|Direction IN1| L298N
+        L298N -->|OUT1 / OUT2| DC_MOTOR
+    end
+
+    subgraph Sorter_Actuators [🦾 Diverter Servo Actuators]
+        SERVO_W[⚪ White Sorter Servo SG90/MG90S]
+        SERVO_B[⚫ Black Sorter Servo SG90/MG90S]
+        
+        P9 -->|PWM Signal| SERVO_W
+        P10 -->|PWM Signal| SERVO_B
+    end
+
+    subgraph Power_Supply [🔋 External Power Distribution]
+        EXT_PWR[⚡ External DC Power Supply 5V - 12V]
+        PWR_POS[+VDC Power Rail]
+        PWR_GND[-GND Common Ground]
+        
+        EXT_PWR --> PWR_POS
+        EXT_PWR --> PWR_GND
+        
+        PWR_POS ==>|12V / 5V| L298N
+        PWR_POS ==>|5V VCC| SERVO_W
+        PWR_POS ==>|5V VCC| SERVO_B
+        
+        PWR_GND ==>|Common GND| L298N
+        PWR_GND ==>|Common GND| SERVO_W
+        PWR_GND ==>|Common GND| SERVO_B
+        PWR_GND ===|Common Reference| GND_A
+    end
+
+    style Host_System fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#fff
+    style Controller fill:#0b192c,stroke:#00ff88,stroke-width:2px,color:#fff
+    style Motor_Subsystem fill:#1e1b4b,stroke:#a855f7,stroke-width:2px,color:#fff
+    style Sorter_Actuators fill:#1c1917,stroke:#f59e0b,stroke-width:2px,color:#fff
+    style Power_Supply fill:#310a0a,stroke:#ef4444,stroke-width:2px,color:#fff
+```
+
+---
+
+### 2. Complete Pin-by-Pin Wiring Table
+
+| Component Module | Component Pin | Arduino UNO Pin | External Power Rail | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **L298N Motor Driver** | `ENA` (Enable A) | **Pin 5** | — | PWM Motor speed/enable signal |
+| **L298N Motor Driver** | `IN1` (Direction 1) | **Pin 6** | — | Motor forward rotation signal |
+| **L298N Motor Driver** | `IN2` (Direction 2) | — | **GND** | Motor reverse ground reference |
+| **L298N Motor Driver** | `12V / VCC` | — | **+12V / +5V (Ext)** | High-current motor supply |
+| **L298N Motor Driver** | `GND` | **GND** | **GND (Ext)** | **Common Ground** connection |
+| **L298N Motor Driver** | `OUT1 & OUT2` | — | — | Connected to DC Gear Motor terminals |
+| **White Sorter Servo** | `Orange (Signal)` | **Pin 9** | — | White Cube diverter gate PWM signal |
+| **White Sorter Servo** | `Red (VCC)` | — | **+5V (Ext)** | High-current 5V servo power |
+| **White Sorter Servo** | `Brown (GND)` | **GND** | **GND (Ext)** | **Common Ground** connection |
+| **Black Sorter Servo** | `Orange (Signal)` | **Pin 10** | — | Black Cube diverter gate PWM signal |
+| **Black Sorter Servo** | `Red (VCC)` | — | **+5V (Ext)** | High-current 5V servo power |
+| **Black Sorter Servo** | `Brown (GND)` | **GND** | **GND (Ext)** | **Common Ground** connection |
+| **PC Host Link** | `USB-B Port` | USB Cable | PC USB Port | Serial communication @ 115200 baud |
+
+---
+
+### 3. Electrical Schematic Layout
+
+```
+                 +-----------------------------------------------+
+                 |              ARDUINO UNO R3/Q                 |
+                 |                                               |
+                 |  [USB TO PC (115200 Baud)]                    |
+                 |                                               |
+                 |  Digital Pin 5 (PWM)  -----> L298N ENA        |
+                 |  Digital Pin 6        -----> L298N IN1        |
+                 |  Digital Pin 9 (PWM)  -----> Servo 1 (White)  |
+                 |  Digital Pin 10 (PWM) -----> Servo 2 (Black)  |
+                 |  GND                  -----> COMMON GROUND    |
+                 +-----------------------------------------------+
+                                            |
+                                            | (Common GND)
+      +-------------------------------------+-----------------------------------+
+      |                                     |                                   |
++-----+------+                        +-----+------+                      +-----+------+
+|   L298N    |                        |  SERVO 1   |                      |  SERVO 2   |
+|   DRIVER   |                        | (WHITE GATE|                      | (BLACK GATE|
++------------+                        +------------+                      +------------+
+| ENA  <-- P5|                        | SIG <-- P9 |                      | SIG <-- P10|
+| IN1  <-- P6|                        | VCC <- +5V |                      | VCC <- +5V |
+| IN2  <--GND|                        | GND <- GND |                      | GND <- GND |
+| OUT1 --> M+|                        +------------+                      +------------+
+| OUT2 --> M-|                              |                                   |
+| 12V  <--+12V (Ext)                        |                                   |
+| GND  <--GND  (Ext)                        |                                   |
++------------+                              |                                   |
+      |                                     |                                   |
+      +-------------------------------------+-----------------------------------+
+                                            |
+                               +------------------------+
+                               |  EXTERNAL POWER SUPPLY |
+                               |   +5V / +12V DC VCC    |
+                               |       GND (Ground)     |
+                               +------------------------+
+```
+
+> [!IMPORTANT]
+> **Common Ground Rule**: Always connect the **GND** of the Arduino UNO directly to the **GND** of your external power supply and motor driver. Without a shared ground reference, signals will float, causing erratic motor/servo behavior.
+
+> [!TIP]
+> **Power Isolation**: Never power the DC motor or both servos directly from the Arduino 5V pin. DC motors and servos draw instantaneous current spikes that will cause microcontroller brownouts and USB resets. Always use an external 5V/12V power supply for actuators.
 
 ---
 
