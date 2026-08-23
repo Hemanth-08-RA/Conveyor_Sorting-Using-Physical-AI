@@ -5,14 +5,15 @@ __pycache__/
 venv/
 .env
 
-# Temporary test images & scratch captures in root
-*.png
-*.jpg
-*.jpeg
-!templates/*.png
-!templates/*.jpg
-!python/templates/*.png
-!python/templates/*.jpg
+# Root scratch debug images
+/*.png
+/*.jpg
+/*.jpeg
+
+# Keep docs, templates, and assets
+!docs/images/*
+!templates/*
+!python/templates/*
 
 # OS & Editor files
 .DS_Store
